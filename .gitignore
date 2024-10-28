@@ -4,6 +4,11 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Databases ###
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
 ### IntelliJ IDEA ###
 .idea/*.xml
 *.iws
