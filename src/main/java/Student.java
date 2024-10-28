@@ -14,7 +14,7 @@ public class Student {
         this.firstName = firstName;
         this.lastName = lastName;
         this.computingID = computingID;
-        courses = new ArrayList<Course>();
+        courses = new ArrayList<>();
     }
 
     public int getId() {
