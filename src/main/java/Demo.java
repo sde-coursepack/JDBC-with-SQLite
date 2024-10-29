@@ -27,7 +27,7 @@ public class Demo {
         courseDatabase.upsertStudent(janeSmith);
 
         // change John Doe's name to Jonathan and upsert
-        johnDoe.setFirstName("Jonathan");
+        johnDoe.setFirstName("Jon");
         courseDatabase.upsertStudent(johnDoe);
 
         // save student adds/changes

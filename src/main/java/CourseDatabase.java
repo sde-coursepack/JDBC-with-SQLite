@@ -21,7 +21,7 @@ public class CourseDatabase {
         if (connection != null && !connection.isClosed()) {
             throw new IllegalStateException("The database connection is already active");
         }
-        connection = DriverManager.getConnection("jdbc:sqlite: " + databaseFilename);
+        connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFilename);
         PreparedStatement preparedStatement = connection.prepareStatement("PRAGMA foreign_keys=ON");
         preparedStatement.execute();
 
@@ -130,19 +130,15 @@ public class CourseDatabase {
         try(PreparedStatement studentUpsert = connection.prepareStatement("""
                 INSERT INTO Students(StudentID, FirstName, LastName, ComputingID)
                     VALUES(?, ?, ?, ?) ON CONFLICT(StudentID) DO UPDATE
-                        SET FirstName = ?,
-                            LastName = ?,
-                            ComputingID = ?;"""
+                        SET FirstName = excluded.FirstName,
+                            LastName = excluded.LastName,
+                            ComputingID = excluded.ComputingID;"""
         )) {
             //Values
             studentUpsert.setInt(1, student.getId());
             studentUpsert.setString(2, student.getFirstName());
             studentUpsert.setString(3, student.getLastName());
             studentUpsert.setString(4, student.getComputingID());
-            //On duplicate key update
-            studentUpsert.setString(5, student.getFirstName());
-            studentUpsert.setString(6, student.getLastName());
-            studentUpsert.setString(7, student.getComputingID());
 
             studentUpsert.executeUpdate();
         }
