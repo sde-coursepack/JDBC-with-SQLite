@@ -78,6 +78,9 @@ public class Demo {
         Optional<Student> student3 = courseDatabase.getStudent(3);
         System.out.println("Student ID - 3 -> " + student3); // is empty
 
+        int nextAvailableID = courseDatabase.getNextStudentID();
+        System.out.println("Next available ID -> " + nextAvailableID);
+
         courseDatabase.disconnect();
     }
 }

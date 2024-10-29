@@ -102,6 +102,16 @@ public class CourseDatabase {
         }
     }
 
+    public int getNextStudentID() throws SQLException {
+        try(PreparedStatement selectNextId = connection.prepareStatement("""
+                SELECT Max(StudentId) + 1 AS NextID FROM Students;"""
+        )) {
+            ResultSet resultSet = selectNextId.executeQuery();
+            resultSet.next();
+            return resultSet.getInt("NextID");
+        }
+    }
+
     public void addNewStudent(Student student) throws SQLException{
         try(PreparedStatement studentInsert = connection.prepareStatement("""
                 INSERT INTO Students(StudentID, FirstName, LastName, ComputingID)
