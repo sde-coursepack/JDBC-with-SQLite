@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class CourseDatabase {
-    private static final String DEFAULT_SQLITE_FILE = "courses.db";
+    private static final String DEFAULT_SQLITE_FILE = "courses_inclass.db";
 
     private final String databaseFilename;
     private Connection connection;
@@ -102,16 +102,58 @@ public class CourseDatabase {
         }
     }
 
+    public void clearTables() throws SQLException {
+        try (PreparedStatement deleteEnrollments = connection.prepareStatement("""
+            DELETE FROM Enrollments;
+            """)) {
+            deleteEnrollments.executeUpdate();
+        }
+        try (PreparedStatement deleteStudents = connection.prepareStatement("""
+            DELETE FROM Students;
+            """)) {
+            deleteStudents.executeUpdate();
+        }
+        try (PreparedStatement deleteCourses = connection.prepareStatement("""
+        DELETE FROM Courses;
+        """)) {
+            deleteCourses.executeUpdate();
+        }
+    }
+
+    public void dropTables() throws SQLException {
+        try (PreparedStatement deleteEnrollments = connection.prepareStatement("""
+            DROP TABLE IF EXISTS Enrollments;
+            """)) {
+            deleteEnrollments.executeUpdate();
+        }
+        try (PreparedStatement deleteStudents = connection.prepareStatement("""
+            DROP TABLE IF EXISTS Students;
+            """)) {
+            deleteStudents.executeUpdate();
+        }
+        try (PreparedStatement deleteCourses = connection.prepareStatement("""
+            DROP TABLE IF EXISTS Courses;
+            """)) {
+            deleteCourses.executeUpdate();
+        }
+    }
+
     public int getNextStudentID() throws SQLException {
         try(PreparedStatement selectNextId = connection.prepareStatement("""
                 SELECT Max(StudentId) + 1 AS NextID FROM Students;"""
         )) {
             ResultSet resultSet = selectNextId.executeQuery();
             resultSet.next();
-            return resultSet.getInt("NextID");
+            int nextID = resultSet.getInt("NextID");
+            return nextID > 0 ? nextID : 1;
         }
     }
 
+    /**
+     * Shallow insert
+     * @param student
+     * @throws SQLException
+     */
     public void addNewStudent(Student student) throws SQLException{
         try(PreparedStatement studentInsert = connection.prepareStatement("""
                 INSERT INTO Students(StudentID, FirstName, LastName, ComputingID)
@@ -126,13 +168,17 @@ public class CourseDatabase {
         }
     }
 
+    /**
+     * Shallow upsert - allows adding a student or changing and student's firstName/lastName
+     * @param student
+     * @throws SQLException
+     */
     public void upsertStudent(Student student) throws SQLException{
         try(PreparedStatement studentUpsert = connection.prepareStatement("""
                 INSERT INTO Students(StudentID, FirstName, LastName, ComputingID)
                     VALUES(?, ?, ?, ?) ON CONFLICT(StudentID) DO UPDATE
                         SET FirstName = excluded.FirstName,
-                            LastName = excluded.LastName,
-                            ComputingID = excluded.ComputingID;"""
+                            LastName = excluded.LastName;"""
         )) {
             //Values
             studentUpsert.setInt(1, student.getId());
@@ -159,24 +205,22 @@ public class CourseDatabase {
         }
     }
 
+    /**
+     * Shallow upsert of course - does not affect enrollments, only MeetingTime can be updated
+     * @param course
+     * @throws SQLException
+     */
     public void upsertCourse(Course course) throws SQLException {
         try(PreparedStatement courseUpsert = connection.prepareStatement("""
                 INSERT INTO Courses(Crn, Subject, CourseNumber, Section, MeetingTime)
                     VALUES(?, ?, ?, ?, ?) ON CONFLICT(Crn) DO UPDATE
-                        SET Subject = ?,
-                            CourseNumber = ?,
-                            Section = ?,
-                            MeetingTime = ?;"""
+                        SET MeetingTime = excluded.MeetingTime;"""
         )) {
             courseUpsert.setInt(1, course.getCrn());
             courseUpsert.setString(2, course.getSubject());
             courseUpsert.setInt(3, course.getCourseNumber());
             courseUpsert.setInt(4, course.getSectionNumber());
             courseUpsert.setString(5, course.getMeetingTime());
-            courseUpsert.setString(6, course.getSubject());
-            courseUpsert.setInt(7, course.getCourseNumber());
-            courseUpsert.setInt(8, course.getSectionNumber());
-            courseUpsert.setString(9, course.getMeetingTime());
             courseUpsert.executeUpdate();
         }
     }
@@ -238,6 +282,24 @@ public class CourseDatabase {
             String lastName = resultSet.getString("LastName");
             String computingID = resultSet.getString("ComputingID");
             return Optional.of(new Student(studentId, firstName, lastName, computingID));
+        }
+    }
+
+    public List<Student> getStudentsByCourse(Course course) throws SQLException {
+        try(PreparedStatement selectEnrollment = connection.prepareStatement("""
+            SELECT StudentID FROM Enrollments
+                WHERE CourseID = ?
+            """)) {
+            selectEnrollment.setInt(1, course.getCrn());
+            ResultSet resultSet = selectEnrollment.executeQuery();
+
+            List<Student> students = new ArrayList<>();
+            while(resultSet.next()) {
+                int studentID = resultSet.getInt("StudentID");
+                Optional<Student> optionalStudent = getStudent(studentID);
+                optionalStudent.ifPresent( student -> students.add(student) );
+            }
+            return students;
         }
     }
 }

@@ -7,7 +7,7 @@ public class Course {
     private final String subject;
     private final int courseNumber;
     private final int sectionNumber;
-    private final String meetingTime;
+    private String meetingTime;
 
     private final List<Student> students;
 
@@ -40,6 +40,10 @@ public class Course {
         return meetingTime;
     }
 
+    public void setMeetingTime(String meetingTime) {
+        this.meetingTime = meetingTime;
+    }
+
     public List<Student> getStudents() {
         return Collections.unmodifiableList(students);
     }
@@ -62,5 +66,22 @@ public class Course {
                ", meetingTime='" + meetingTime + '\'' +
                ", students=" + students +
                '}';
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Course course)) return false;
+
+        return crn == course.crn && courseNumber == course.courseNumber && sectionNumber == course.sectionNumber && subject.equals(course.subject) && meetingTime.equals(course.meetingTime);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = crn;
+        result = 31 * result + subject.hashCode();
+        result = 31 * result + courseNumber;
+        result = 31 * result + sectionNumber;
+        return result;
     }
 }

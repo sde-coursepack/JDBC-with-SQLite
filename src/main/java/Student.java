@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class Student {
     private final int id;
@@ -62,5 +63,23 @@ public class Student {
                ", computingID='" + computingID + '\'' +
                ", courses=" + courses +
                '}';
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Student student)) return false;
+
+        return id == student.id &&
+               Objects.equals(firstName, student.firstName) &&
+               Objects.equals(lastName, student.lastName) &&
+               computingID.equals(student.computingID);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + computingID.hashCode();
+        return result;
     }
 }
