@@ -145,7 +145,10 @@ public class CourseDatabase {
             ResultSet resultSet = selectNextId.executeQuery();
             resultSet.next();
             int nextID = resultSet.getInt("NextID");
-            return nextID > 0 ? nextID : 1;
+            if (resultSet.wasNull()) {
+                return 1;
+            }
+            return nextID;
         }
     }
 
