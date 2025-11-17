@@ -210,7 +210,7 @@ public class CourseDatabase {
 
     /**
      * Shallow upsert of course - does not affect enrollments, only MeetingTime can be updated
-     * @param course
+     * @param course the course to upsert
      * @throws SQLException
      */
     public void upsertCourse(Course course) throws SQLException {
@@ -291,7 +291,7 @@ public class CourseDatabase {
     public List<Student> getStudentsByCourse(Course course) throws SQLException {
         try(PreparedStatement selectEnrollment = connection.prepareStatement("""
             SELECT StudentID FROM Enrollments
-                WHERE CourseID = ?
+                WHERE CRN = ?
             """)) {
             selectEnrollment.setInt(1, course.getCrn());
             ResultSet resultSet = selectEnrollment.executeQuery();
