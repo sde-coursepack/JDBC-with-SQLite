@@ -74,8 +74,8 @@ public class CourseDatabase {
 
     private void createCoursesTable() throws SQLException {
         try(PreparedStatement preparedStatement = connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS Courses (\s
-                  Crn INTEGER PRIMARY KEY,\s
+                CREATE TABLE IF NOT EXISTS Courses (
+                  Crn INTEGER PRIMARY KEY,
                   Subject TEXT,
                   CourseNumber INTEGER,
                   Section INTEGER,
